@@ -1,0 +1,14 @@
+{
+  "id": "3491dc66-c596-47c7-bc0e-c6e6ac655939",
+  "owner": "admin",
+  "versions": [
+    {
+      "version": 1,
+      "created": "2025-08-11T21:22:49.309934",
+      "name": "products",
+      "data": {
+        "results": "Sample data"
+      }
+    }
+  ]
+}

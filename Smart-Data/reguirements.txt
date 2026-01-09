@@ -1,0 +1,14 @@
+python libraries requires to run the sever : 
+
+flask
+sqlalchemy
+pymysql
+pandas
+numpy
+matplotlib
+openpyxl
+nltk
+spacy
+reportlab
+python-docx
+pypandoc

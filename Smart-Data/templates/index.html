@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Data Mediator - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @keyframes rotating {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .login-box {
+            position: relative;
+            background: #2d2d39;
+            border-radius: 15px;
+            border: 8px solid #25252b;
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .login-box::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(#00ccff, #d400d4);
+            filter: drop-shadow(0 15px 50px #000);
+            border-radius: 20px;
+            animation: rotating 4s linear infinite;
+            animation-delay: -1s;
+        }
+        
+        .login-box::after {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            background: #2d2d39;
+            border-radius: 15px;
+            border: 8px solid #25252b;
+        }
+        
+        .login-content {
+            position: relative;
+            z-index: 10;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0f15;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="w-full px-4">
+        <div class="login-box p-0.5 mx-auto">
+            <div class="login-content p-8">
+                <h2 class="text-3xl font-bold text-center mb-8">LOGIN</h2>
+                
+                {% if error %}
+                <div class="mb-4 p-3 bg-red-900/50 text-red-300 rounded-lg">
+                    {{ error }}
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="/login">
+                    <div class="mb-6">
+                        <label class="block mb-2 text-sm font-medium">Username</label>
+                        <input
+                            type="text"
+                            name="username"
+                            required
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                    </div>
+                    <div class="mb-6">
+                        <label class="block mb-2 text-sm font-medium">Password</label>
+                        <input
+                            type="password"
+                            name="password"
+                            required
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-3 rounded-lg font-semibold hover:opacity-90 mb-4"
+                    >
+                        Sign in
+                    </button>
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <a href="#" class="hover:text-white">Forgot Password</a>
+                        <a href="#" class="hover:text-white">Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

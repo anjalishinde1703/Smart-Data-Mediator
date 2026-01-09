@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project - Smart Data Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .gradient-border {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px;
+            right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #00ccff, #d400d4);
+            z-index: -1;
+            border-radius: 16px;
+            animation: rotate 4s linear infinite;
+        }
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .card {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        .query-example:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+        .visualization-tabs button.active {
+            background: rgba(124, 58, 237, 0.5);
+            border-color: rgb(124, 58, 237);
+        }
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-chart {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .fade-chart.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="gradient-border p-1 rounded-lg max-w-6xl mx-auto">
+            <div class="card p-8 rounded-lg">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl font-bold text-white">Data Visualization Studio</h1>
+                    <a href="/dashboard" class="bg-gradient-to-r from-gray-600 to-gray-700 hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">
+                        Back to Dashboard
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Panel -->
+                    <div class="lg:col-span-2 gradient-border p-1 rounded-lg">
+                        <div class="card p-6 rounded-lg h-full">
+                            <h2 class="text-xl font-semibold text-white mb-4">Data Explorer</h2>
+                            
+                            <div class="mb-6">
+                                <label class="block text-gray-300 mb-2">Describe the visualization you want</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="analysisQuery" 
+                                        class="flex-grow px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                                        placeholder="e.g., Show monthly sales as a line chart">
+                                    <button onclick="processAdvancedQuery()" 
+                                        class="bg-gradient-to-r from-purple-600 to-blue-500 hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">
+                                        Visualize
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h3 class="text-lg font-medium text-gray-300 mb-2">Try these visualization examples:</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="query-example p-3 bg-gray-800 rounded-lg cursor-pointer transition-all" 
+                                        onclick="document.getElementById('analysisQuery').value = 'Show monthly sales as a line chart'; processAdvancedQuery()">
+                                        <p class="text-white font-medium">Monthly Sales Trend</p>
+                                        <p class="text-gray-400 text-sm">Line chart of sales over time</p>
+                                    </div>
+                                    <div class="query-example p-3 bg-gray-800 rounded-lg cursor-pointer transition-all"
+                                        onclick="document.getElementById('analysisQuery').value = 'Compare product categories by revenue as bar chart'; processAdvancedQuery()">
+                                        <p class="text-white font-medium">Revenue by Category</p>
+                                        <p class="text-gray-400 text-sm">Bar chart comparison</p>
+                                    </div>
+                                    <div class="query-example p-3 bg-gray-800 rounded-lg cursor-pointer transition-all"
+                                        onclick="document.getElementById('analysisQuery').value = 'Show regional market share as pie chart'; processAdvancedQuery()">
+                                        <p class="text-white font-medium">Regional Market Share</p>
+                                        <p class="text-gray-400 text-sm">Pie chart distribution</p>
+                                    </div>
+                                    <div class="query-example p-3 bg-gray-800 rounded-lg cursor-pointer transition-all"
+                                        onclick="document.getElementById('analysisQuery').value = 'Display correlation between price and sales as scatter plot'; processAdvancedQuery()">
+                                        <p class="text-white font-medium">Price vs. Sales</p>
+                                        <p class="text-gray-400 text-sm">Scatter plot correlation</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="queryResults" class="hidden">
+                                <h3 class="text-lg font-semibold text-white mb-2">Source Data</h3>
+                                <div class="overflow-x-auto">
+                                    <div id="resultsContainer" class="bg-gray-800 rounded-lg p-4 max-h-60 overflow-y-auto"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel -->
+                    <div class="gradient-border p-1 rounded-lg">
+                        <div class="card p-6 rounded-lg h-full flex flex-col">
+                            <h2 class="text-xl font-semibold text-white mb-4">Visualization Studio</h2>
+                            
+                            <div class="visualization-tabs flex space-x-2 mb-4 border-b border-gray-700 pb-2">
+                                <button class="active px-3 py-1 text-sm rounded-t border-b-2 border-transparent text-white transition-all" 
+                                    data-type="auto" onclick="changeVisualizationType('auto')">Auto</button>
+                                <button class="px-3 py-1 text-sm rounded-t border-b-2 border-transparent text-gray-400 hover:text-white transition-all" 
+                                    data-type="line" onclick="changeVisualizationType('line')">Line</button>
+                                <button class="px-3 py-1 text-sm rounded-t border-b-2 border-transparent text-gray-400 hover:text-white transition-all" 
+                                    data-type="bar" onclick="changeVisualizationType('bar')">Bar</button>
+                                <button class="px-3 py-1 text-sm rounded-t border-b-2 border-transparent text-gray-400 hover:text-white transition-all" 
+                                    data-type="pie" onclick="changeVisualizationType('pie')">Pie</button>
+                                <button class="px-3 py-1 text-sm rounded-t border-b-2 border-transparent text-gray-400 hover:text-white transition-all" 
+                                    data-type="scatter" onclick="changeVisualizationType('scatter')">Scatter</button>
+                                <button class="px-3 py-1 text-sm rounded-t border-b-2 border-transparent text-gray-400 hover:text-white transition-all" 
+                                    data-type="table" onclick="changeVisualizationType('table')">Table</button>
+                            </div>
+
+                            <!-- Download Button -->
+                            <div class="flex justify-end mb-2">
+                                <button onclick="downloadVisualization()" 
+                                    class="bg-gradient-to-r from-green-500 to-teal-500 hover:opacity-90 text-white px-3 py-1 rounded text-sm font-semibold">
+                                    ⬇ Download
+                                </button>
+                            </div>
+                            
+                            <div id="visualizationContainer" class="chart-container flex-1 bg-gray-800 rounded-lg flex items-center justify-center fade-chart">
+                                <p class="text-gray-500">Your visualization will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+let currentResults = null;
+let currentVisualizationType = 'auto';
+
+function displayResults(data) {
+    const resultsContainer = document.getElementById('resultsContainer');
+    const queryResults = document.getElementById('queryResults');
+    queryResults.classList.remove('hidden');
+    resultsContainer.innerHTML = '';
+
+    if (data.results && data.results.length > 0) {
+        let html = '<table class="w-full text-gray-300 text-sm"><thead><tr class="border-b border-gray-700">';
+        const cols = Object.keys(data.results[0]);
+        cols.forEach(col => html += `<th class="px-4 py-2 text-left">${col}</th>`);
+        html += '</tr></thead><tbody>';
+        
+        data.results.forEach(row => {
+            html += '<tr class="border-b border-gray-700 hover:bg-gray-700">';
+            cols.forEach(col => {
+                const value = row[col];
+                const displayValue = typeof value === 'number' ? 
+                    Number.isInteger(value) ? value.toLocaleString() : value.toFixed(2) : value;
+                html += `<td class="px-4 py-2">${displayValue}</td>`;
+            });
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        resultsContainer.innerHTML = html;
+    }
+}
+
+function updateVisualization(data) {
+    const container = document.getElementById('visualizationContainer');
+    container.classList.remove('visible');
+    container.innerHTML = '';
+
+    if (!data || !data.results || data.results.length === 0) {
+        container.innerHTML = '<p class="text-gray-400">No data available</p>';
+        return;
+    }
+
+    let xAxis = data.x_axis;
+    let yAxis = data.y_axis;
+    let chartType = currentVisualizationType === 'auto' ? data.response_type : currentVisualizationType;
+
+    const cols = Object.keys(data.results[0]);
+    if (!xAxis || !cols.includes(xAxis)) {
+        xAxis = cols[0];
+    }
+    if (!yAxis || !cols.includes(yAxis)) {
+        for (let col of cols) {
+            if (typeof data.results[0][col] === 'number') {
+                yAxis = col;
+                break;
+            }
+        }
+    }
+    if (!yAxis) {
+        yAxis = cols[1] || cols[0];
+    }
+    if (!chartType || chartType === 'auto') {
+        chartType = (typeof data.results[0][yAxis] === 'number') ? 'bar' : 'scatter';
+    }
+
+    const xValues = data.results.map(row => row[xAxis]);
+    const yValues = data.results.map(row => row[yAxis]);
+
+    setTimeout(() => {
+        if (chartType === 'table') {
+            displayResults(data);
+        } else {
+            const trace = {
+                x: xValues,
+                y: yValues,
+                type: chartType,
+                mode: chartType === 'scatter' ? 'markers' : undefined
+            };
+            Plotly.newPlot(container, [trace], { 
+                title: data.title || `${yAxis} vs ${xAxis}`, 
+                paper_bgcolor: '#1f2937', 
+                plot_bgcolor: '#1f2937', 
+                font: { color: '#fff' },
+                transition: { duration: 500, easing: 'cubic-in-out' }
+            }).then(() => {
+                container.classList.add('visible');
+            });
+        }
+    }, 200);
+}
+
+async function processAdvancedQuery() {
+    const query = document.getElementById('analysisQuery').value;
+    const visualizationContainer = document.getElementById('visualizationContainer');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const queryResults = document.getElementById('queryResults');
+
+    if (!query) {
+        alert('Please describe the visualization you want');
+        return;
+    }
+
+    visualizationContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center text-white">
+            <div class="loader"></div>
+            <p>Processing your query...</p>
+        </div>
+    `;
+    queryResults.classList.remove('hidden');
+    resultsContainer.innerHTML = `
+        <div class="flex flex-col items-center justify-center text-white py-6">
+            <div class="loader"></div>
+            <p>Loading table data...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/api/process_advanced_query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, title: query })
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.status === 'error') throw new Error(data.error || 'Unknown error');
+
+        currentResults = data;
+        displayResults(currentResults);
+        updateVisualization(currentResults);
+    } catch (error) {
+        visualizationContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+        resultsContainer.innerHTML = `<p class="text-red-500 p-4">Error: ${error.message}</p>`;
+    }
+}
+
+function changeVisualizationType(type) {
+    currentVisualizationType = type;
+    if (currentResults) {
+        updateVisualization(currentResults);
+    }
+}
+
+function downloadVisualization() {
+    if (!currentResults || !currentResults.results || currentResults.results.length === 0) {
+        alert("No visualization available to download.");
+        return;
+    }
+
+    if (currentVisualizationType === "table") {
+        const rows = [Object.keys(currentResults.results[0])];
+        currentResults.results.forEach(row => {
+            rows.push(Object.values(row));
+        });
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + rows.map(e => e.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "table_data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } else {
+        Plotly.downloadImage(document.getElementById('visualizationContainer'), {
+            format: 'png',
+            filename: 'chart_visualization',
+            height: 600,
+            width: 800,
+            scale: 2
+        });
+    }
+}
+</script>
+</body>
+</html>

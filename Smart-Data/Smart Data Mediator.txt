@@ -1,0 +1,171 @@
+# Smart Data Mediator
+
+Smart Data Mediator is a "Flask-based intelligent data analysis platform" that allows users to upload datasets, query them using natural language, generate insights, and export reports in multiple formats.  
+It combines "data processing (pandas)", "NLP (spaCy)", and "visualization" into one simple dashboar .
+
+---
+
+# 🚀 Features
+- User Authentication (Login / Logout with roles).
+- Upload CSV/Excel files and preview data.
+- Natural Language Querying  
+   Examples:  
+     top 5 products  
+     sales by region  
+     trend over time  
+     average sales 
+- Smart Query Parsing with synonyms (region, sales, category, product, date).
+- Data Filtering & Date Ranges ('2023', '2023-05', '2023-01-01 to 2023-12-31').
+- Reports Management – every query run in 'New Project' is stored in 'Reports'.
+- Project Saving with version history and restore feature.
+- Export Options  
+  - CSV  
+  - Excel  
+  - PDF  
+  - HTML
+- Dashboard Overview (recent uploads, reports, projects, activity).
+- Multiple Chart Types – bar, line, etc.
+
+---
+
+# 📂 Project Structure
+
+Smart-Data/
+│── app.py # Main Flask backend
+│── requirements.txt # Dependencies
+│── .env # Environment variables
+│
+├── uploads/ # Uploaded datasets
+├── projects/ # Saved project JSONs
+│
+├── templates/ # Frontend HTML (Flask Jinja2)
+│ ├── dashboard.html
+│ ├── login.html
+│ ├── new_project.html
+│ ├── reports.html
+│ ├── projects.html
+│ ├── view_project.html
+│ ├── templates.html
+│ ├── data_sources.html
+│ ├── settings.html
+│ └── profile.html
+│
+├── static/ # CSS, JS, Images
+│ ├── styles.css
+│ ├── script.js
+│ └── assets/
+│
+└── README.md
+
+
+---
+
+# ⚙️ Installation & Setup
+
+# 1. Clone the repository
+bash
+git clone https://github.com/your-username/smart-data-mediator.git
+cd smart-data-mediator
+
+2. Create a virtual environment
+python -m venv venv
+source venv/bin/activate    Mac/Linux
+venv\Scripts\activate       Windows
+
+3. Install dependencies
+pip install -r requirements.txt
+
+4. Environment Variables
+
+Create a .env file:
+
+SECRET_KEY=ritu0327
+UPLOAD_FOLDER=uploads
+PROJECTS_FOLDER=projects
+
+5. Run the server
+python app.py
+
+
+Visit 👉 http://127.0.0.1:5000/
+
+🖥️ Usage
+
+Login
+
+Default users:
+
+admin / admin123
+
+user / user123
+
+Upload Data
+
+Upload CSV or Excel dataset.
+
+Run Queries
+
+Go to New Project → type a query (top 5 products).
+
+Results + Insights are displayed.
+
+Query is automatically saved in Reports.
+
+Manage Projects
+
+Save analysis as projects.
+
+View versions and restore older ones.
+
+Export Results
+
+Export as CSV, Excel, PDF, HTML.
+
+📊 Example Queries
+
+Top 10 products by sales
+
+Sales by region
+
+Sales trend over time
+
+Average revenue in 2023
+
+Orders in Mumbai in 2024
+
+🛠️ Tech Stack
+
+Backend: Flask (Python)
+
+Frontend: HTML, CSS, JS (with Flask Jinja2 templates)
+
+Data Processing: pandas, openpyxl, xlrd
+
+NLP: spaCy (optional)
+
+Exports: reportlab (PDF), pandas (CSV/Excel)
+
+📌 Future Improvements
+
+✅ Multiple chart visualizations (pie, scatter, stacked bars).
+
+✅ User login with MySQL/PostgreSQL database.
+
+✅ Upload and merge multiple datasets.
+
+✅ AI-powered query expansion (better NLP).
+
+✅ Auto-generated insights & summaries.
+
+✅ Role-based permissions (admin vs user).
+
+✅ Real-time collaboration dashboard.
+
+👨‍💻 Author
+
+Ritu
+Smart Data Mediator – Student Project 🚀
+
+---
+
+✨ This README is professional + student-friendly. It will look **perfect on GitHub**.  

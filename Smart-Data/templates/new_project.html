@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project</title>
+    <!-- Add jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border: #dee2e6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        h1 {
+            color: var(--primary-dark);
+            font-weight: 600;
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        #query-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        #query-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: rgba(67, 97, 238, 0.1);
+        }
+        
+        /* Table styling */
+        .data-table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: white;
+            color: var(--dark);
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background-color: #f1f3ff;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f8f9ff;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f1f3ff;
+        }
+        
+        /* Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+            border-radius: 8px;
+            overflow: hidden;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+        }
+        
+        .dropdown-content a {
+            color: var(--dark);
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f3ff;
+            color: var(--primary);
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        /* Insights box */
+        #insights-box {
+            margin-top: 1.5rem;
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            color: var(--dark);
+            font-size: 0.95rem;
+            display: none;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        #insights-box strong {
+            color: var(--primary-dark);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        /* Loading state */
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1rem;
+            color: var(--primary-dark);
+            padding: 1rem;
+        }
+        
+        .loading:after {
+            content: " ";
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(67, 97, 238, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            #query-input {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Create New Project</h1>
+        <button class="btn btn-outline" onclick="goToDashboard()">
+            ← Back to Dashboard
+        </button>
+    </div>
+    
+    <div class="input-group">
+        <input type="text" id="query-input" placeholder="Enter your search query...">
+        <button class="btn" onclick="runQuery()">
+            <span>Run Query</span>
+        </button>
+        <button class="btn btn-secondary" onclick="saveProject()">
+            <span>Save Project</span>
+        </button>
+
+        <div class="dropdown">
+            <button class="btn">
+                <span>Download ▼</span>
+            </button>
+            <div class="dropdown-content">
+                <a href="#" onclick="downloadFile('csv')">Export as CSV</a>
+                <a href="#" onclick="downloadFile('excel')">Export as Excel</a>
+                <a href="#" onclick="downloadFile('pdf')">Export as PDF</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-container"></div>
+
+    <div id="insights-box">
+        <strong>📊 Insights</strong>
+        <p id="insights-text"></p>
+    </div>
+</div>
+
+<script>
+// Initialize jsPDF
+const { jsPDF } = window.jspdf;
+
+// Store the current results for download
+let currentResults = [];
+
+function goToDashboard() {
+    window.location.href = "/dashboard";
+}
+
+function runQuery() {
+    const query = document.getElementById('query-input').value.trim();
+    const container = document.getElementById('results-container');
+
+    if (!query) { 
+        alert("Please enter a query"); 
+        return; 
+    }
+
+    // Show loading state
+    container.innerHTML = `<div class="loading">Processing your query</div>`;
+
+    // For demo purposes, we'll use sample data
+    // In a real app, you would fetch from your API
+    setTimeout(() => {
+        currentResults = [
+            {
+                "Category": "Technology",
+                "Product ID": "TEC-CO-10004722",
+                "Sales": "61,599.82"
+            },
+            {
+                "Category": "Office Supplies",
+                "Product ID": "OFF-BI-10003527",
+                "Sales": "27,453.38"
+            },
+            {
+                "Category": "Technology",
+                "Product ID": "TEC-MA-10002412",
+                "Sales": "22,638.48"
+            },
+            {
+                "Category": "Furniture",
+                "Product ID": "FUR-CH-10002024",
+                "Sales": "21,870.58"
+            },
+            {
+                "Category": "Office Supplies",
+                "Product ID": "OFF-BI-10001359",
+                "Sales": "19,823.48"
+            }
+        ];
+        
+        renderResults({ results: currentResults });
+        generateInsights(currentResults, query);
+    }, 1000);
+}
+
+function renderResults(data) {
+    const container = document.getElementById('results-container');
+    container.innerHTML = "";
+
+    if (Array.isArray(data.results) && data.results.length > 0) {
+        const table = document.createElement('table');
+        table.classList.add('data-table');
+        const headers = Object.keys(data.results[0]);
+        
+        const thead = document.createElement('thead');
+        const trHead = document.createElement('tr');
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        data.results.forEach(row => {
+            const tr = document.createElement('tr');
+            headers.forEach(h => {
+                const td = document.createElement('td');
+                td.textContent = row[h] !== null ? row[h] : 'NULL';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        container.appendChild(table);
+    } else {
+        container.innerHTML = `<div style="padding: 1rem; background: white; border-radius: 8px; color: var(--gray);">No data available for this query</div>`;
+    }
+}
+
+function saveProject() {
+    const projectName = prompt("Enter project name:");
+    if (!projectName) return;
+    
+    alert(`Project "${projectName}" saved successfully!`);
+    // In a real app, you would send this to your backend
+}
+
+function downloadFile(type) {
+    if (!currentResults || currentResults.length === 0) {
+        alert("No data available to download. Please run a query first.");
+        return;
+    }
+
+    const headers = Object.keys(currentResults[0]);
+    const data = currentResults.map(row => headers.map(header => row[header]));
+
+    switch(type) {
+        case 'csv':
+            // CSV format
+            let csvContent = headers.join(',') + '\n';
+            currentResults.forEach(row => {
+                csvContent += headers.map(header => {
+                    let value = row[header];
+                    if (value === null || value === undefined) value = '';
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                        value = '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    return value;
+                }).join(',') + '\n';
+            });
+            
+            const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            downloadBlob(csvBlob, 'data_export.csv');
+            break;
+
+        case 'excel':
+            // Excel format (CSV with .xls extension)
+            let excelContent = headers.join('\t') + '\n';
+            currentResults.forEach(row => {
+                excelContent += headers.map(header => {
+                    let value = row[header];
+                    if (value === null || value === undefined) value = '';
+                    return value;
+                }).join('\t') + '\n';
+            });
+            
+            const excelBlob = new Blob([excelContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            downloadBlob(excelBlob, 'data_export.xls');
+            break;
+
+        case 'pdf':
+            // PDF format using jsPDF
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Data Export', 14, 20);
+            
+            // Add date
+            doc.setFontSize(10);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+            
+            // Add table
+            doc.autoTable({
+                head: [headers],
+                body: data,
+                startY: 35,
+                styles: {
+                    cellPadding: 5,
+                    fontSize: 10,
+                    valign: 'middle'
+                },
+                headStyles: {
+                    fillColor: [67, 97, 238],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [240, 240, 255]
+                },
+                margin: { top: 35 }
+            });
+            
+            // Save the PDF
+            doc.save('data_export.pdf');
+            break;
+    }
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function generateInsights(results, query) {
+    const insightsBox = document.getElementById('insights-box');
+    const insightsText = document.getElementById('insights-text');
+    
+    if (!Array.isArray(results) || results.length === 0) {
+        insightsBox.style.display = "none";
+        return;
+    }
+    
+    const rowCount = results.length;
+    const colCount = Object.keys(results[0]).length;
+    
+    let insight = `Your query "${query}" returned ${rowCount} ${rowCount === 1 ? 'row' : 'rows'} with ${colCount} ${colCount === 1 ? 'column' : 'columns'}.`;
+    
+    if (rowCount > 0) {
+        const firstRow = results[0];
+        const sampleValue = firstRow[Object.keys(firstRow)[0]];
+        insight += ` Sample value: "${String(sampleValue).substring(0, 30)}${String(sampleValue).length > 30 ? '...' : ''}"`;
+    }
+    
+    insightsText.textContent = insight;
+    insightsBox.style.display = "block";
+}
+</script>
+</body>
+</html>

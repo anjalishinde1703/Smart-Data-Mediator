@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Preview - Smart Data Mediator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .gradient-border {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px;
+            right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #00ccff, #d400d4);
+            z-index: -1;
+            border-radius: 16px;
+            animation: rotate 4s linear infinite;
+        }
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .card {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        table {
+            min-width: 100%;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background: rgba(17, 24, 39, 0.9);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="gradient-border p-1 rounded-lg max-w-6xl mx-auto">
+            <div class="card p-8 rounded-lg">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl font-bold text-white">Data Preview</h1>
+                    <div class="flex gap-4">
+                        <a href="/upload" class="bg-gradient-to-r from-gray-600 to-gray-700 hover:opacity-90 text-white px-4 py-2 rounded-lg font-semibold">
+                            Upload New
+                        </a>
+                        <a href="/dashboard" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:opacity-90 text-white px-4 py-2 rounded-lg font-semibold">
+                            Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Data Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="gradient-border p-1 rounded-lg">
+                        <div class="card p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-white">Rows</h3>
+                            <p class="text-3xl font-bold text-blue-400">{{ stats.rows }}</p>
+                        </div>
+                    </div>
+                    <div class="gradient-border p-1 rounded-lg">
+                        <div class="card p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-white">Columns</h3>
+                            <p class="text-3xl font-bold text-purple-400">{{ stats.columns }}</p>
+                        </div>
+                    </div>
+                    <div class="gradient-border p-1 rounded-lg">
+                        <div class="card p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-white">Missing Values</h3>
+                            <p class="text-3xl font-bold text-amber-400">{{ stats.missing_values }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Preview Table -->
+                <div class="gradient-border p-1 rounded-lg mb-8">
+                    <div class="card p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold text-white mb-4">Data Preview (First 10 Rows)</h2>
+                        <div class="overflow-x-auto max-h-96">
+                            <table class="w-full text-gray-300">
+                                <thead>
+                                    <tr>
+                                        {% for column in columns %}
+                                        <th class="px-4 py-2 text-left">{{ column }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in preview %}
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700">
+                                        {% for column in columns %}
+                                        <td class="px-4 py-2">{{ row[column] }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Section -->
+                <div class="gradient-border p-1 rounded-lg">
+                    <div class="card p-6 rounded-lg">
+                        <h2 class="text-xl font-semibold text-white mb-4">Query Your Data</h2>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Enter your query (e.g., "show first 5", "describe")</label>
+                            <input type="text" id="queryInput" 
+                                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                                placeholder="Try: 'show first 5' or 'describe'">
+                        </div>
+                        <button onclick="processQuery()" 
+                            class="bg-gradient-to-r from-purple-600 to-blue-500 hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">
+                            Run Query
+                        </button>
+                        <div id="queryResults" class="mt-4 hidden">
+                            <h3 class="text-lg font-semibold text-white mb-2">Results</h3>
+                            <div id="resultsTable" class="overflow-x-auto max-h-96 mb-4"></div>
+                            <div id="resultsChart" class="h-64"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function processQuery() {
+            const query = document.getElementById('queryInput').value;
+            if (!query) {
+                alert('Please enter a query');
+                return;
+            }
+
+            fetch('/process_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                const resultsDiv = document.getElementById('queryResults');
+                resultsDiv.classList.remove('hidden');
+                
+                // Display results as table
+                const tableDiv = document.getElementById('resultsTable');
+                if (typeof data.results === 'object' && !Array.isArray(data.results)) {
+                    // Handle describe-like output
+                    let html = '<table class="w-full text-gray-300"><thead><tr>';
+                    html += '<th class="px-4 py-2 text-left">Statistic</th>';
+                    
+                    const cols = Object.keys(data.results);
+                    cols.forEach(col => {
+                        html += `<th class="px-4 py-2 text-left">${col}</th>`;
+                    });
+                    
+                    html += '</tr></thead><tbody>';
+                    
+                    const stats = Object.keys(data.results[cols[0]]);
+                    stats.forEach(stat => {
+                        html += `<tr class="border-b border-gray-700"><td class="px-4 py-2">${stat}</td>`;
+                        cols.forEach(col => {
+                            html += `<td class="px-4 py-2">${data.results[col][stat]}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    tableDiv.innerHTML = html;
+                } else {
+                    // Handle array of objects
+                    if (data.results.length === 0) {
+                        tableDiv.innerHTML = '<p class="text-gray-300">No results found</p>';
+                        return;
+                    }
+                    
+                    let html = '<table class="w-full text-gray-300"><thead><tr>';
+                    const cols = Object.keys(data.results[0]);
+                    cols.forEach(col => {
+                        html += `<th class="px-4 py-2 text-left">${col}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+                    
+                    data.results.forEach(row => {
+                        html += '<tr class="border-b border-gray-700">';
+                        cols.forEach(col => {
+                            html += `<td class="px-4 py-2">${row[col]}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    tableDiv.innerHTML = html;
+                    
+                    // Simple visualization for numeric data
+                    const numericCols = cols.filter(col => 
+                        typeof data.results[0][col] === 'number'
+                    );
+                    
+                    if (numericCols.length > 0) {
+                        const chartData = numericCols.map(col => ({
+                            y: data.results.map(row => row[col]),
+                            name: col,
+                            type: 'bar'
+                        }));
+                        
+                        Plotly.newPlot('resultsChart', chartData, {
+                            title: 'Numeric Data Visualization',
+                            plot_bgcolor: 'rgba(31, 41, 55, 0)',
+                            paper_bgcolor: 'rgba(31, 41, 55, 0)',
+                            font: { color: '#fff' }
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error processing query');
+            });
+        }
+    </script>
+</body>
+</html>
